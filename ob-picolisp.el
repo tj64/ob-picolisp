@@ -57,6 +57,12 @@
 ;; optionally define a file extension for this language
 (add-to-list 'org-babel-tangle-lang-exts '("picolisp" . "l"))
 
+;; optionally declare default header arguments for this language
+(defvar org-babel-default-header-args:picolisp
+  '((:colnames . "no"))
+  "Default arguments for evaluating a picolisp source block.")
+
+
 (defcustom org-babel-picolisp-cmd "pil"
   "Name of command used to evaluate picolisp blocks."
   :group 'org-babel
@@ -82,9 +88,27 @@
   "Execute a block of Picolisp code with org-babel.  This function is
  called by `org-babel-execute-src-block'"           
   (message "executing Picolisp source code block")
-  (let ((result-type (cdr (assoc :result-type params)))
+  (let* (
+	;; name of the session or "none"
+        (session-name (cdr (assoc :session params)))
+        ;; set the session if the session variable is non-nil
+        (session (org-babel-picolisp-initiate-session session-name))
+        ;; either OUTPUT or VALUE which should behave as described above
+	(result-type (cdr (assoc :result-type params)))
+        ;; expand the body with `org-babel-expand-body:picolisp'
         (full-body (org-babel-expand-body:picolisp body params))
         (script-file (org-babel-temp-file "picolisp-script-")))
+
+    ;; (read
+    ;;  (if (not (string= session-name "none"))
+         ;; session evaluation
+         ;; (org-babel-comint-with-output
+         ;;       (session (format "%S" org-babel-picolisp-eoe) t full-body)
+         ;;     (mapc
+         ;;      (lambda (line)
+         ;;        (insert (org-babel-chomp line)) (comint-send-input nil t))
+         ;;      (list full-body (format "%S" org-babel-picolisp-eoe))))
+
     (with-temp-file script-file
       (insert (concat (if (string= result-type "value")
                           ;(format "(print %s)" full-body)
@@ -103,6 +127,20 @@
               org-babel-picolisp-cmd
               (org-babel-process-file-name script-file))
       ""))))
+
+(defun org-babel-picolisp-initiate-session (&optional session)
+  "If there is not a current inferior-process-buffer in SESSION
+then create.  Return the initialized session."
+  (unless (string= session "none")
+    (let ((session-buffer (save-window-excursion
+                            (run-picolisp picolisp-program-name)
+                            (rename-buffer session)
+                            (current-buffer))))
+      (if (org-babel-comint-buffer-livep session-buffer)
+          (progn (sit-for .25) session-buffer)
+        (sit-for .5)
+        (org-babel-picolisp-initiate-session session)))))
+
 
 (provide 'ob-picolisp)
 ;;; ob-picolisp.el ends here

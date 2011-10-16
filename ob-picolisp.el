@@ -81,7 +81,14 @@
 	 ;; either OUTPUT or VALUE which should behave as described above
 	 (result-type (cdr (assoc :result-type params)))
 	 ;; expand the body with `org-babel-expand-body:picolisp'
-	 (full-body (org-babel-expand-body:picolisp body params)))
+	 (full-body-with-output (org-babel-expand-body:picolisp body params))
+	 ;; send output to "/dev/null" if ':results value'
+	 (full-body-no-output (concat (format "(out \"/dev/null\" %s"
+                             full-body-with-output) ")"))
+	 ;; choose body by result-type
+	 (full-body (if (string= result-type "value")
+			full-body-no-output
+		      full-body-with-output)))
 
 
     ((lambda (result)
@@ -103,12 +110,7 @@
       ; external evaluation
        (let ((script-file (org-babel-temp-file "picolisp-script-")))
 	 (with-temp-file script-file
-	   (insert (concat (if (string= result-type "value")
-			       (concat (format "(out \"/dev/null\" %s"
-					       full-body) ")")
-			     full-body)
-			   "(bye)"))
-
+	   (insert (concat full-body "(bye)"))
 	   (org-babel-eval
 	    (format "%s %s"
 		    org-babel-picolisp-cmd

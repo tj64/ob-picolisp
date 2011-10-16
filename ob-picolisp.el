@@ -65,7 +65,11 @@
                            (print (cdr var))))
                  vars "\n      ")
                 " \n" body ") )")
-      body)))
+      body)
+    (if (or (member "code" result-params)
+            (member "pp" result-params))
+        (concat "(pretty " body ")") body)
+    ))
 
 
 

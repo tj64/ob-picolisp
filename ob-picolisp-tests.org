@@ -1,0 +1,110 @@
+* Test Cases for ob-picolisp.el
+
+** data
+
+*** table-data
+
+    #+tblname: tbl1
+    | 1 | 2 | 3 |
+    |---+---+---|
+    | 4 | 5 | 6 |
+    | 7 | 8 | 9 |
+
+    #+tblname: tbl2
+    | col1 | col2 | col3 |
+    |------+------+------|
+    |    4 |    5 |    6 |
+    |    7 |    8 |    9 |
+
+
+    #+tblname: tbl3
+    | row1 | 2 | 3 |
+    |------+---+---|
+    | row2 | 5 | 6 |
+    | row3 | 8 | 9 |
+
+
+    #+tblname: tbl4
+
+    |      | col2 | col3 |
+    |------+------+------|
+    | row2 |    5 |    6 |
+    | row3 |    8 |    9 |
+
+
+
+** header-args
+*** external
+
+**** :results value
+
+     #+srcname: exval
+     #+begin_src picolisp :var tab=tbl1 :results append value :hlines no 
+       (+ (caar tab) (caar (cdr tab)))
+       (print (+ (caar tab) (caar (cdr tab))))
+     #+end_src
+
+
+**** :results output
+
+     #+srcname: exout
+     #+begin_src picolisp :var tab=tbl1 :results append output :hlines no 
+       (+ (caar tab) (caar (cdr tab)))
+       (print (+ (caar tab) (caar (cdr tab))))
+     #+end_src
+
+
+*** session
+    :PROPERTIES:
+    ::session: *PL*
+    :END:
+
+**** :results value
+
+
+     #+srcname: sval
+     #+begin_src picolisp :var tab=tbl1 :results append value :hlines no 
+       (+ (caar tab) (caar (cdr tab)))
+       (print (+ (caar tab) (caar (cdr tab))))
+     #+end_src
+
+
+**** :results output
+     
+
+     #+srcname: sout
+     #+begin_src picolisp :var tab=tbl1 :results append output :hlines no 
+       (+ (caar tab) (caar (cdr tab)))
+       (print (+ (caar tab) (caar (cdr tab))))
+     #+end_src
+
+
+** helper-functions
+
+*** clean-up
+
+Function to clean up this buffer after test runs (delete the results).
+Not working yet ...
+
+    #+srcname: defun-cleanup
+    #+begin_src emacs-lisp
+      (defun tj-cleanup-results ()
+        "deletes all results from the current ob-buffer"
+        (let ((lastline (line-number-at-pos (goto-char (point-max))))
+              currentline)
+          (goto-char (point-min))
+          (setq currentline (line-number-at-pos))
+          (while (< currentline lastline)
+            (while (not (end-of-line))
+              (if (or (looking-at "#+results") (looking-at ":"))
+                  (delete-region (beginning-of-line) (end-of-line))))
+            (next-line)
+            (setq currentline (line-number-at-pos)))))
+    #+end_src
+
+    #+srcname: call-cleanup
+    #+begin_src emacs-lisp :results silent
+      (tj-cleanup-results)
+    #+end_src
+
+   

@@ -26,31 +26,12 @@
 
 ;;; Commentary:
 
-;; This file is not intended to ever be loaded by org-babel, rather it
-;; is a template for use in adding new language support to Org-babel.
-;; Good first steps are to copy this file to a file named by the
-;; language you are adding, and then use `query-replace' to replace
-;; all strings of "template" in this file with the name of your new
-;; language.
-;;
-;; If you have questions as to any of the portions of the file defined
-;; below please look to existing language support for guidance.
-;;
-;; If you are planning on adding a language to org-babel we would ask
-;; that if possible you fill out the FSF copyright assignment form
-;; available at http://orgmode.org/request-assign-future.txt as this
-;; will make it possible to include your language support in the core
-;; of Org-mode, otherwise unassigned language support files can still
-;; be included in the contrib/ directory of the Org-mode repository.
-
 ;;; Requirements:
 
-;; Use this section to list the requirements of this language.  Most
-;; languages will require that at least the language be installed on
-;; the user's system, and the Emacs major mode relevant to the
-;; language be installed as well.
 
 ;;; Code:
+;; (require 'picolisp-mode)
+;; (require 'inferior-picolisp-mode)
 (require 'ob)
 (require 'ob-eval)
 
@@ -62,11 +43,51 @@
   '((:colnames . "no"))
   "Default arguments for evaluating a picolisp source block.")
 
+(defvar org-babel-picolisp-eoe "org-babel-picolisp-eoe"
+  "String to indicate that evaluation has completed.")
 
 (defcustom org-babel-picolisp-cmd "pil"
   "Name of command used to evaluate picolisp blocks."
   :group 'org-babel
   :type 'string)
+
+(defun org-babel-run-picolisp (cmd)
+  "Run an inferior Picolisp process, input and output via buffer `*picolisp*'.
+If there is a process already running in `*picolisp*', switch to that buffer.
+With argument, allows you to edit the command line (default is value
+of `picolisp-program-name').
+Runs the hook `inferior-picolisp-mode-hook' \(after the `comint-mode-hook'
+is run).
+\(Type \\[describe-mode] in the process buffer for a list of commands.)"
+
+  (when (not (comint-check-proc "*picolisp*"))
+    (let ((cmdlist (split-string cmd)))
+      (set-buffer (apply 'make-comint "picolisp" (car cmdlist)
+                         nil (cdr cmdlist) ) )
+      (inferior-picolisp-mode) ) )
+  (setq picolisp-program-name cmd)
+  (setq picolisp-buffer "*picolisp*") )
+
+
+
+  ;; (when (not (comint-check-proc session-name))
+  ;;   (let ((cmdlist (split-string cmd)))
+  ;;     (set-buffer (apply 'make-comint session-name (car cmdlist)
+  ;;                        nil (cdr cmdlist) ) )
+  ;;     (inferior-picolisp-mode) ) )
+  ;; (setq picolisp-program-name cmd)
+  ;; (setq picolisp-buffer (format "*%S*" session-name) ))
+
+
+;; wouldn't loading the temp-file made for external execution into the inferior Picolisp session all thats necesary?
+
+;; (defun org-babel-picolisp-load-file (file-name)
+;;   "Load (non-interactively) a Picolisp file FILE-NAME into the inferior Picolisp process."
+;;   (comint-check-source file-name) ; Check to see if buffer needs saved.
+;;   (comint-send-string session (concat "(load \""
+;;                                               file-name
+;;                                               "\"\)\n" ) ) )
+
 
 (defun org-babel-expand-body:picolisp (body params &optional processed-params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -84,6 +105,32 @@
                 " \n" body ") )")
       body)))
 
+
+;; (defun org-babel-execute:picolisp (body params)
+;;   "Execute a block of Picolisp code with org-babel.  This function is
+;;  called by `org-babel-execute-src-block'"           
+;;   (message "executing Picolisp source code block")
+;;   (let ((result-type (cdr (assoc :result-type params)))
+;;         (full-body (org-babel-expand-body:picolisp body params))
+;;         (script-file (org-babel-temp-file "picolisp-script-")))
+;;     (with-temp-file script-file
+;;       (insert (concat (if (string= result-type "value")
+;;                           (format "(print %s)" full-body)
+;;                         full-body)
+;;                       "(bye)")))
+;;     ((lambda (result)
+;;        (if (and (not (member 'verbatim result-params))
+;;                 (not (member 'scalar result-params))
+;;                 (> (length result) 0))
+;;            (read result)
+;;          result))
+;;      (org-babel-eval
+;;       (format "%s %s"
+;;               org-babel-picolisp-cmd
+;;               (org-babel-process-file-name script-file))
+;;       ""))))
+
+
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is
  called by `org-babel-execute-src-block'"           
@@ -96,50 +143,82 @@
         ;; either OUTPUT or VALUE which should behave as described above
 	(result-type (cdr (assoc :result-type params)))
         ;; expand the body with `org-babel-expand-body:picolisp'
-        (full-body (org-babel-expand-body:picolisp body params))
-        (script-file (org-babel-temp-file "picolisp-script-")))
+        (full-body (org-babel-expand-body:picolisp body params)))
 
     ;; (read
-    ;;  (if (not (string= session-name "none"))
-         ;; session evaluation
-         ;; (org-babel-comint-with-output
-         ;;       (session (format "%S" org-babel-picolisp-eoe) t full-body)
-         ;;     (mapc
-         ;;      (lambda (line)
-         ;;        (insert (org-babel-chomp line)) (comint-send-input nil t))
-         ;;      (list full-body (format "%S" org-babel-picolisp-eoe))))
+     ;; (if (not (string= session-name "none"))
+     ;;     session evaluation
+     ;;     (org-babel-comint-with-output
+     ;;           (session (format "%S" org-babel-picolisp-eoe) t full-body)
+     ;;         (mapc
+     ;;          (lambda (line)
+     ;;            (insert (org-babel-chomp line)) (comint-send-input nil t))
+     ;;          (list full-body (format "%S" org-babel-picolisp-eoe))))
 
-    (with-temp-file script-file
-      (insert (concat (if (string= result-type "value")
-                          ;(format "(print %s)" full-body)
-			  (concat (format "(print (out \"/dev/null\" %s)"
-					  full-body) ")")
-                        full-body)
-                      "(bye)")))
+
+
+      ;; (insert (if (string= result-type "value")
+      ;;             ;(format "(print %s)" full-body)
+      ;; 		  (concat (format "(print (out \"/dev/null\" %s)"
+      ;; 				  full-body) ")")
+      ;; 		full-body))
+
     ((lambda (result)
        (if (and (not (member 'verbatim result-params))
                 (not (member 'scalar result-params))
                 (> (length result) 0))
            (read result)
          result))
-     (org-babel-eval
-      (format "%s %s"
-              org-babel-picolisp-cmd
-              (org-babel-process-file-name script-file))
-      ""))))
+     (if (not (string= session-name "none"))
+	   ; session based evaluation
+              (org-babel-comint-with-output
+                   (session (format "%S" org-babel-picolisp-eoe) nil full-body)
+		(progn 
+                 (mapc
+                  (lambda (line)
+                    (insert (org-babel-chomp line)) (comint-send-input nil t))
+                  (list full-body))
+		 (comint-simple-send session (format "%S" org-babel-picolisp-eoe))))
 
-(defun org-babel-picolisp-initiate-session (&optional session)
+	 
+	   ;; (org-babel-comint-with-output
+	   ;;     (session (format "%S" org-babel-picolisp-eoe) t full-body)
+	   ;;   (progn
+	   ;;     (org-babel-picolisp-load-file script-file)	       
+	   ;;     (comint-simple-send session (format "%S" org-babel-picolisp-eoe))))
+       ; external evaluation
+       ;; (goto-char point-max)
+       ;; (insert "\n(bye)")
+       (let ((script-file (org-babel-temp-file "picolisp-script-")))
+       (with-temp-file script-file
+         (insert (concat (if (string= result-type "value")
+                             (concat (format "(out \"/dev/null\" %s"
+                                             full-body) ")")
+                           full-body)
+                         "(bye)"))
+
+       (org-babel-eval
+	(format "%s %s"
+		org-babel-picolisp-cmd
+		(org-babel-process-file-name script-file))
+	"")))))))
+
+(defun org-babel-picolisp-initiate-session (&optional session-name)
   "If there is not a current inferior-process-buffer in SESSION
 then create.  Return the initialized session."
-  (unless (string= session "none")
+  (unless (string= session-name "none")
     (let ((session-buffer (save-window-excursion
-                            (run-picolisp picolisp-program-name)
-                            (rename-buffer session)
+                            (run-picolisp org-babel-picolisp-cmd
+			     ; picolisp-program-name
+			     )
+                            (rename-buffer session-name)
                             (current-buffer))))
       (if (org-babel-comint-buffer-livep session-buffer)
           (progn (sit-for .25) session-buffer)
         (sit-for .5)
-        (org-babel-picolisp-initiate-session session)))))
+        (org-babel-picolisp-initiate-session session-name)))))
+
+
 
 
 (provide 'ob-picolisp)

@@ -25,19 +25,34 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;; This library enables the use of PicoLisp in the multi-language programming framework Org-Babel. PicoLisp is a minimal yet fascinating lisp dialect and a highly productive application framework for web-based client-server applications on top of object-oriented databases. A good way to learn PicoLisp is to first read Paul Grahams essay "The hundred year language" and then study the various documents and essays published in the PicoLisp wiki. PicoLisp is included in some GNU/Linux Distributions, and can be downloaded here. It ships with a picolisp-mode and a inferior-picolisp-mode for Emacs, which can be downloaded here.
+;; This library enables the use of PicoLisp in the multi-language
+;; programming framework Org-Babel. PicoLisp is a minimal yet
+;; fascinating lisp dialect and a highly productive application
+;; framework for web-based client-server applications on top of
+;; object-oriented databases. A good way to learn PicoLisp is to first
+;; read Paul Grahams essay "The hundred year language" and then study
+;; the various documents and essays published in the PicoLisp
+;; wiki. PicoLisp is included in some GNU/Linux Distributions, and can
+;; be downloaded here. It ships with a picolisp-mode and a
+;; inferior-picolisp-mode for Emacs, which can be downloaded here.
 
-;; Although it might seem more natural to use Emacs Lisp for most Lisp-based programming tasks inside Org-Mode, an Emacs library written in Emacs Lisp, PicoLisp has at least two outstanding features that make it a valuable addition to Org-Babel:
+;; Although it might seem more natural to use Emacs Lisp for most
+;; Lisp-based programming tasks inside Org-Mode, an Emacs library
+;; written in Emacs Lisp, PicoLisp has at least two outstanding
+;; features that make it a valuable addition to Org-Babel:
 
-;; PicoLisp _is_ an object-oriented database with a Prolog-based query language implemented in PicoLisp (Pilog). Database objects are first-class members of the language. 
-;; PicoLisp is an extremely productive framework for the development of interactive web-applications (on top of a database). 
+;; PicoLisp _is_ an object-oriented database with a Prolog-based query
+;; language implemented in PicoLisp (Pilog). Database objects are
+;; first-class members of the language. 
+
+;; PicoLisp is an extremely productive framework for the development
+;; of interactive web-applications (on top of a database). 
 
 ;;; Requirements:
 
-
 ;;; Code:
 ;; (require 'picolisp-mode)
-;; (require 'inferior-picolisp-mode)
+;; 
 (require 'ob)
 (require 'ob-eval)
 
@@ -62,22 +77,19 @@
   (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
         (result-params (cdr (assoc :result-params params)))
         (print-level nil) (print-length nil))
-    (if (> (length vars) 0)
-        (concat "(prog (let ("
-                (mapconcat
-                 (lambda (var)
-                   (format "%S '%S)"
-                           (print (car var))
-                           (print (cdr var))))
-                 vars "\n      ")
-                " \n" body ") )")
-      body)
-    (if (or (member "code" result-params)
-            (member "pp" result-params))
-        (concat "(pretty " body ")") body)
-    ))
-
-
+    (let ((expanded-body (if (> (length vars) 0)
+                             (concat "(prog (let ("
+                                     (mapconcat
+                                      (lambda (var)
+                                        (format "%S '%S)"
+                                                (print (car var))
+                                                (print (cdr var))))
+                                      vars "\n      ")
+                                     " \n" body ") )")
+                           body)))
+      (if (or (member "code" result-params)
+              (member "pp" result-params))
+          (concat "(pretty " expanded-body ")") expanded-body))))
 
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is
@@ -91,22 +103,19 @@
 	 ;; either OUTPUT or VALUE which should behave as described above
 	 (result-type (cdr (assoc :result-type params)))
 	 ;; expand the body with `org-babel-expand-body:picolisp'
-	 (full-body-with-output (org-babel-expand-body:picolisp body params))
-	 ;; send output to "/dev/null" if ':results value'
-	 (full-body-no-output (concat (format "(out \"/dev/null\" %s"
-                             full-body-with-output) ")"))
-	 ;; choose body by result-type
+	 (part-body (org-babel-expand-body:picolisp body params))
+	 ;; only print value if result-type=value
 	 (full-body (if (string= result-type "value")
-			full-body-no-output
-		      full-body-with-output)))
-
+                           (format "(print (out \"/dev/null\" %s))" part-body)
+                         part-body)))
 
     ((lambda (result)
-       (if (and (not (member 'verbatim result-params))
-                (not (member 'scalar result-params))
-                (> (length result) 0))
-           (read result)
-         result))
+       (if (or (member "verbatim" result-params)
+               (member "scalar" result-params)
+               (member "output" result-params)
+               (= (length result) 0))
+           result
+         (read result)))
      (if (not (string= session-name "none"))
      ; session based evaluation
 	 (org-babel-comint-with-output
@@ -120,17 +129,18 @@
       ; external evaluation
        (let ((script-file (org-babel-temp-file "picolisp-script-")))
 	 (with-temp-file script-file
-	   (insert (concat full-body "(bye)"))
-	   (org-babel-eval
-	    (format "%s %s"
-		    org-babel-picolisp-cmd
-		    (org-babel-process-file-name script-file))
-	    "")))))))
+	   (insert (concat full-body "(bye)")))
+         (org-babel-eval
+          (format "%s %s"
+                  org-babel-picolisp-cmd
+                  (org-babel-process-file-name script-file))
+          ""))))))
 
 (defun org-babel-picolisp-initiate-session (&optional session-name)
   "If there is not a current inferior-process-buffer in SESSION
 then create.  Return the initialized session."
   (unless (string= session-name "none")
+    (require 'inferior-picolisp-mode)
     (let ((session-buffer (save-window-excursion
                             (run-picolisp org-babel-picolisp-cmd
 			     ; picolisp-program-name

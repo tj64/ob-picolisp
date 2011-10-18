@@ -103,22 +103,19 @@
 	 ;; either OUTPUT or VALUE which should behave as described above
 	 (result-type (cdr (assoc :result-type params)))
 	 ;; expand the body with `org-babel-expand-body:picolisp'
-	 (full-body-with-output (org-babel-expand-body:picolisp body params))
-	 ;; send output to "/dev/null" if ':results value'
-	 (full-body-no-output (concat (format "(out \"/dev/null\" %s"
-                             full-body-with-output) ")"))
-	 ;; choose body by result-type
+	 (part-body (org-babel-expand-body:picolisp body params))
+	 ;; only print value if result-type=value
 	 (full-body (if (string= result-type "value")
-			full-body-no-output
-		      full-body-with-output)))
-
+                           (format "(print (out \"/dev/null\" %s))" part-body)
+                         part-body)))
 
     ((lambda (result)
-       (if (and (not (member "verbatim" result-params))
-                (not (member "scalar" result-params))
-                (> (length result) 0))
-           (read result)
-         result))
+       (if (or (member "verbatim" result-params)
+               (member "scalar" result-params)
+               (member "output" result-params)
+               (= (length result) 0))
+           result
+         (read result)))
      (if (not (string= session-name "none"))
      ; session based evaluation
 	 (org-babel-comint-with-output

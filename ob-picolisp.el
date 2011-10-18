@@ -114,8 +114,8 @@
 
 
     ((lambda (result)
-       (if (and (not (member 'verbatim result-params))
-                (not (member 'scalar result-params))
+       (if (and (not (member "verbatim" result-params))
+                (not (member "scalar" result-params))
                 (> (length result) 0))
            (read result)
          result))

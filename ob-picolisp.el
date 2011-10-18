@@ -132,12 +132,12 @@
       ; external evaluation
        (let ((script-file (org-babel-temp-file "picolisp-script-")))
 	 (with-temp-file script-file
-	   (insert (concat full-body "(bye)"))
-	   (org-babel-eval
-	    (format "%s %s"
-		    org-babel-picolisp-cmd
-		    (org-babel-process-file-name script-file))
-	    "")))))))
+	   (insert (concat full-body "(bye)")))
+         (org-babel-eval
+          (format "%s %s"
+                  org-babel-picolisp-cmd
+                  (org-babel-process-file-name script-file))
+          ""))))))
 
 (defun org-babel-picolisp-initiate-session (&optional session-name)
   "If there is not a current inferior-process-buffer in SESSION

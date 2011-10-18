@@ -25,15 +25,30 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;; This library enables the use of PicoLisp in the multi-language programming framework Org-Babel. PicoLisp is a minimal yet fascinating lisp dialect and a highly productive application framework for web-based client-server applications on top of object-oriented databases. A good way to learn PicoLisp is to first read Paul Grahams essay "The hundred year language" and then study the various documents and essays published in the PicoLisp wiki. PicoLisp is included in some GNU/Linux Distributions, and can be downloaded here. It ships with a picolisp-mode and a inferior-picolisp-mode for Emacs, which can be downloaded here.
+;; This library enables the use of PicoLisp in the multi-language
+;; programming framework Org-Babel. PicoLisp is a minimal yet
+;; fascinating lisp dialect and a highly productive application
+;; framework for web-based client-server applications on top of
+;; object-oriented databases. A good way to learn PicoLisp is to first
+;; read Paul Grahams essay "The hundred year language" and then study
+;; the various documents and essays published in the PicoLisp
+;; wiki. PicoLisp is included in some GNU/Linux Distributions, and can
+;; be downloaded here. It ships with a picolisp-mode and a
+;; inferior-picolisp-mode for Emacs, which can be downloaded here.
 
-;; Although it might seem more natural to use Emacs Lisp for most Lisp-based programming tasks inside Org-Mode, an Emacs library written in Emacs Lisp, PicoLisp has at least two outstanding features that make it a valuable addition to Org-Babel:
+;; Although it might seem more natural to use Emacs Lisp for most
+;; Lisp-based programming tasks inside Org-Mode, an Emacs library
+;; written in Emacs Lisp, PicoLisp has at least two outstanding
+;; features that make it a valuable addition to Org-Babel:
 
-;; PicoLisp _is_ an object-oriented database with a Prolog-based query language implemented in PicoLisp (Pilog). Database objects are first-class members of the language. 
-;; PicoLisp is an extremely productive framework for the development of interactive web-applications (on top of a database). 
+;; PicoLisp _is_ an object-oriented database with a Prolog-based query
+;; language implemented in PicoLisp (Pilog). Database objects are
+;; first-class members of the language. 
+
+;; PicoLisp is an extremely productive framework for the development
+;; of interactive web-applications (on top of a database). 
 
 ;;; Requirements:
-
 
 ;;; Code:
 ;; (require 'picolisp-mode)

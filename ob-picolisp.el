@@ -77,22 +77,19 @@
   (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
         (result-params (cdr (assoc :result-params params)))
         (print-level nil) (print-length nil))
-    (if (> (length vars) 0)
-        (concat "(prog (let ("
-                (mapconcat
-                 (lambda (var)
-                   (format "%S '%S)"
-                           (print (car var))
-                           (print (cdr var))))
-                 vars "\n      ")
-                " \n" body ") )")
-      body)
-    (if (or (member "code" result-params)
-            (member "pp" result-params))
-        (concat "(pretty " body ")") body)
-    ))
-
-
+    (let ((expanded-body (if (> (length vars) 0)
+                             (concat "(prog (let ("
+                                     (mapconcat
+                                      (lambda (var)
+                                        (format "%S '%S)"
+                                                (print (car var))
+                                                (print (cdr var))))
+                                      vars "\n      ")
+                                     " \n" body ") )")
+                           body)))
+      (if (or (member "code" result-params)
+              (member "pp" result-params))
+          (concat "(pretty " expanded-body ")") expanded-body))))
 
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is

@@ -1,4 +1,8 @@
 * Test Cases for ob-picolisp.el
+Evaluate single codeblocks with C-c C-c (with point inside sourceblock).
+Evaluate subheaders (all sourceblocks under one header of outline-tree)
+with C-c C-v s (with point on subheader). 
+
 
 ** data
 
@@ -39,13 +43,24 @@
 **** :results value
 
      #+srcname: exval
-     #+begin_src picolisp :var tab=tbl1 :results append value :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results value :hlines no 
        (+ (caar tab) (caar (cdr tab)))
+       (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
      #+end_src
 
      #+results: exval
      : 5
+
+
+     #+srcname: exval-pp
+     #+begin_src picolisp :var tab=tbl1 :results value pp :hlines no 
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: exval-pp
+     : )
+
 
 
 **** :results output
@@ -61,6 +76,21 @@
      : 4
      : 5
 
+     #+srcname: exout-pp
+     #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: exout-pp
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )
+
+
 *** session
     :PROPERTIES:
     ::session: *PL*
@@ -70,48 +100,41 @@
 
 
      #+srcname: sval
-     #+begin_src picolisp :var tab=tbl1 :results append value :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results value :hlines no 
        (+ (caar tab) (caar (cdr tab)))
+       (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
      #+end_src
+
+     #+results: sval
+     : 5->
+
+     #+srcname: sval-pp
+     #+begin_src picolisp :var tab=tbl1 :results value pp :hlines no 
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: sval-pp
+     : )
 
 
 **** :results output
-     
 
      #+srcname: sout
-     #+begin_src picolisp :var tab=tbl1 :results append output :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results output :hlines no 
        (+ (caar tab) (caar (cdr tab)))
+       (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
      #+end_src
 
+     #+results: sout
+     | 4\n5-> 5\n | -> "org-babel-picolisp-eoe"\n |   |
 
-** helper-functions
+     #+srcname: sout-pp
+     #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
 
-*** clean-up
+     #+results: sout-pp
+     | (a\n   (b c d)\n   (e\n      (f (g) (h) (i))\n      (j (k) (l) (m)) )\n   (n o p)\n   q )-> ")"\n | -> "org-babel-picolisp-eoe"\n |   |
 
-Function to clean up this buffer after test runs (delete the results).
-Not working yet ...
-
-    #+srcname: defun-cleanup
-    #+begin_src emacs-lisp
-      (defun tj-cleanup-results ()
-        "deletes all results from the current ob-buffer"
-        (let ((lastline (line-number-at-pos (goto-char (point-max))))
-              currentline)
-          (goto-char (point-min))
-          (setq currentline (line-number-at-pos))
-          (while (< currentline lastline)
-            (while (not (end-of-line))
-              (if (or (looking-at "#+results") (looking-at ":"))
-                  (delete-region (beginning-of-line) (end-of-line))))
-            (next-line)
-            (setq currentline (line-number-at-pos)))))
-    #+end_src
-
-    #+srcname: call-cleanup
-    #+begin_src emacs-lisp :results silent
-      (tj-cleanup-results)
-    #+end_src
-
-   

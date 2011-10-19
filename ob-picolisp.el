@@ -51,7 +51,7 @@
 ;;; Requirements:
 
 ;;; Code:
-;; (require 'picolisp-mode)
+;; (require 'picolisp)
 ;; 
 (require 'ob)
 (require 'ob-eval)
@@ -140,11 +140,9 @@
   "If there is not a current inferior-process-buffer in SESSION
 then create.  Return the initialized session."
   (unless (string= session-name "none")
-    (require 'inferior-picolisp-mode)
+    (require 'inferior-picolisp)
     (let ((session-buffer (save-window-excursion
-                            (run-picolisp org-babel-picolisp-cmd
-			     ; picolisp-program-name
-			     )
+                            (run-picolisp org-babel-picolisp-cmd)
                             (rename-buffer session-name)
                             (current-buffer))))
       (if (org-babel-comint-buffer-livep session-buffer)

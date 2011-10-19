@@ -44,15 +44,22 @@
        (print (+ (caar tab) (caar (cdr tab))))
      #+end_src
 
+     #+results: exval
+     : 5
+
 
 **** :results output
 
      #+srcname: exout
-     #+begin_src picolisp :var tab=tbl1 :results append output :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results output :hlines no 
        (+ (caar tab) (caar (cdr tab)))
+       (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
      #+end_src
 
+     #+results: exout
+     : 4
+     : 5
 
 *** session
     :PROPERTIES:

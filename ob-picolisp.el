@@ -89,23 +89,16 @@
   (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
         (result-params (cdr (assoc :result-params params)))
         (print-level nil) (print-length nil))
-    (let ((expanded-body (if (> (length vars) 0)
-                             (concat "(prog (let ("
-                                     (mapconcat
-                                      (lambda (var)
-                                        (format "%S '%S)"
-                                                (print (car var))
-                                                (print (cdr var))))
-                                      vars "\n      ")
-                                     " \n" body ") )")
-                           body)))
-      (cond
-       ((or (member "code" result-params)
-            (member "pp" result-params))
-        (format "(pretty (out \"/dev/null\" %s))" expanded-body))
-       ((member "value" result-params)
-        (format "(print (out \"/dev/null\" %s))" expanded-body))
-       (t expanded-body)))))
+    (if (> (length vars) 0)
+        (concat "(prog (let ("
+                (mapconcat
+                 (lambda (var)
+                   (format "%S '%S)"
+                           (print (car var))
+                           (print (cdr var))))
+                 vars "\n      ")
+                " \n" body ") )")
+      body)))
 
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is
@@ -119,7 +112,18 @@
 	 ;; either OUTPUT or VALUE which should behave as described above
 	 (result-type (cdr (assoc :result-type params)))
 	 ;; expand the body with `org-babel-expand-body:picolisp'
-	 (full-body (org-babel-expand-body:picolisp body params)))
+	 (full-body (org-babel-expand-body:picolisp body params))
+         ;; wrap body appropriately for the type of evaluation and results
+         (wrapped-body
+          (cond
+           ((or (member "code" result-params)
+                (member "pp" result-params))
+            (format "(pretty (out \"/dev/null\" %s))" full-body))
+           ((and (member "value" result-params) (not session))
+            (format "(print (out \"/dev/null\" %s))" full-body))
+           ((member "value" result-params)
+            (format "(out \"/dev/null\" %s)" full-body))
+           (t full-body))))
     
     ((lambda (result)
        (if (or (member "verbatim" result-params)
@@ -131,19 +135,28 @@
            result
          (read result)))
      (if (not (string= session-name "none"))
-     ; session based evaluation
-	 (org-babel-comint-with-output
-	     (session (format "%S" org-babel-picolisp-eoe) nil full-body)
-	   (progn 
-	     (mapc
-	      (lambda (line)
-		(insert (org-babel-chomp line)) (comint-send-input nil t))
-	      (list full-body))
-	     (comint-simple-send session (format "%S" org-babel-picolisp-eoe))))
-      ; external evaluation
+         ;; session based evaluation
+	 (mapconcat ;; <- joins the list back together into a single string
+          #'identity
+          (butlast ;; <- remove the org-babel-picolisp-eoe line
+           (delq nil
+                 (mapcar
+                  (lambda (line)
+                    (org-babel-chomp ;; remove trailing newlines
+                     (when (> (length line) 0) ;; remove empty lines
+                       (if (and (>= (length line) 3) ;; remove leading "<- "
+                                (string= "-> " (subseq line 0 3)))
+                           (subseq line 3)
+                         line))))
+                  ;; returns a list of the output of each evaluated expression
+                  (org-babel-comint-with-output (session org-babel-picolisp-eoe)
+                    (insert wrapped-body) (comint-send-input)
+                    (insert "'" org-babel-picolisp-eoe) (comint-send-input)))))
+          "\n")
+       ;; external evaluation
        (let ((script-file (org-babel-temp-file "picolisp-script-")))
 	 (with-temp-file script-file
-	   (insert (concat full-body "(bye)")))
+	   (insert (concat wrapped-body "(bye)")))
          (org-babel-eval
           (format "%s %s"
                   org-babel-picolisp-cmd
@@ -155,17 +168,15 @@
 then create.  Return the initialized session."
   (unless (string= session-name "none")
     (require 'inferior-picolisp)
-    (let ((session-buffer (save-window-excursion
-                            (run-picolisp org-babel-picolisp-cmd)
-                            (rename-buffer session-name)
-                            (current-buffer))))
-      (if (org-babel-comint-buffer-livep session-buffer)
-          (progn (sit-for .25) session-buffer)
-        (sit-for .5)
-        (org-babel-picolisp-initiate-session session-name)))))
-
-
-
+    ;; provide a reasonable default session name
+    (let ((session (or session-name "*inferior-picolisp*")))
+      ;; check if we already have a live session by this name
+      (if (org-babel-comint-buffer-livep session)
+          (get-buffer session)
+        (save-window-excursion
+          (run-picolisp org-babel-picolisp-cmd)
+          (rename-buffer session-name)
+          (current-buffer))))))
 
 (provide 'ob-picolisp)
 ;;; ob-picolisp.el ends here

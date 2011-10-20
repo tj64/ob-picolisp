@@ -1,11 +1,21 @@
 ;;; ob-picolisp.el --- org-babel functions for picolisp evaluation
 
-;; Copyright (C) Thorsten
+;; Copyright (C) 2011 Thorsten Jolitz
 
-;; Author: Thorsten and Eric Schulte
-;; Keywords: literate programming, reproducible research
+;; Authors: Thorsten Jolitz and Eric Schulte
+;; Keywords: literate programming, reproducible research, 
 ;; Homepage: http://orgmode.org
-;; Version: 0.01
+;; Version: 1.0
+
+;;;; Contact:
+
+;; For comments, bug reports, questions, etc, you can contact the
+;; first author via email to
+;; (concat "t" "jolitz") at gmail dot com 
+;; or post a question in the org-newsgroup (see homepage) with prefix
+;; [babel] in the header.
+
+;; This file is NOT (yet) part of GNU Emacs
 
 ;;; License:
 
@@ -24,17 +34,21 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Commentary:
+;;; Commentary: 
+
 ;; This library enables the use of PicoLisp in the multi-language
 ;; programming framework Org-Babel. PicoLisp is a minimal yet
 ;; fascinating lisp dialect and a highly productive application
 ;; framework for web-based client-server applications on top of
 ;; object-oriented databases. A good way to learn PicoLisp is to first
-;; read Paul Grahams essay "The hundred year language" and then study
-;; the various documents and essays published in the PicoLisp
-;; wiki. PicoLisp is included in some GNU/Linux Distributions, and can
-;; be downloaded here. It ships with a picolisp-mode and a
-;; inferior-picolisp-mode for Emacs, which can be downloaded here.
+;; read Paul Grahams essay "The hundred year language"
+;; (http://www.paulgraham.com/hundred.html) and then study the various
+;; documents and essays published in the PicoLisp wiki
+;; (http://picolisp.com/5000/-2.html). PicoLisp is included in some
+;; GNU/Linux Distributions, and can be downloaded here:
+;; http://software-lab.de/down.html. It ships with a picolisp-mode and
+;; a inferior-picolisp-mode for Emacs (to be found in the /lib/el/
+;; directory).
 
 ;; Although it might seem more natural to use Emacs Lisp for most
 ;; Lisp-based programming tasks inside Org-Mode, an Emacs library
@@ -51,8 +65,6 @@
 ;;; Requirements:
 
 ;;; Code:
-;; (require 'picolisp)
-;; 
 (require 'ob)
 (require 'ob-eval)
 

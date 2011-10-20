@@ -1,3 +1,4 @@
+
 * Test Cases for ob-picolisp.el
 Evaluate single codeblocks with C-c C-c (with point inside sourceblock).
 Evaluate subheaders (all sourceblocks under one header of outline-tree)
@@ -59,7 +60,13 @@ with C-c C-v s (with point on subheader).
      #+end_src
 
      #+results: exval-pp
-     : )
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )
 
 
 
@@ -107,15 +114,21 @@ with C-c C-v s (with point on subheader).
      #+end_src
 
      #+results: sval
-     : 5->
+     : 5
 
      #+srcname: sval-pp
-     #+begin_src picolisp :var tab=tbl1 :results value pp :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
      #+end_src
 
      #+results: sval-pp
-     : )
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )
 
 
 **** :results output
@@ -128,7 +141,8 @@ with C-c C-v s (with point on subheader).
      #+end_src
 
      #+results: sout
-     | 4\n5-> 5\n | -> "org-babel-picolisp-eoe"\n |   |
+     : 4
+     : 5
 
      #+srcname: sout-pp
      #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
@@ -136,5 +150,11 @@ with C-c C-v s (with point on subheader).
      #+end_src
 
      #+results: sout-pp
-     | (a\n   (b c d)\n   (e\n      (f (g) (h) (i))\n      (j (k) (l) (m)) )\n   (n o p)\n   q )-> ")"\n | -> "org-babel-picolisp-eoe"\n |   |
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )
 

@@ -87,9 +87,13 @@
                                       vars "\n      ")
                                      " \n" body ") )")
                            body)))
-      (if (or (member "code" result-params)
-              (member "pp" result-params))
-          (concat "(pretty " expanded-body ")") expanded-body))))
+      (cond
+       ((or (member "code" result-params)
+            (member "pp" result-params))
+        (format "(pretty (out \"/dev/null\" %s))" expanded-body))
+       ((member "value" result-params)
+        (format "(print (out \"/dev/null\" %s))" expanded-body))
+       (t expanded-body)))))
 
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is
@@ -103,16 +107,14 @@
 	 ;; either OUTPUT or VALUE which should behave as described above
 	 (result-type (cdr (assoc :result-type params)))
 	 ;; expand the body with `org-babel-expand-body:picolisp'
-	 (part-body (org-babel-expand-body:picolisp body params))
-	 ;; only print value if result-type=value
-	 (full-body (if (string= result-type "value")
-                           (format "(print (out \"/dev/null\" %s))" part-body)
-                         part-body)))
-
+	 (full-body (org-babel-expand-body:picolisp body params)))
+    
     ((lambda (result)
        (if (or (member "verbatim" result-params)
                (member "scalar" result-params)
                (member "output" result-params)
+               (member "code" result-params)
+               (member "pp" result-params)
                (= (length result) 0))
            result
          (read result)))

@@ -117,21 +117,21 @@ prepend'. If you don't want to see any results in this buffer, use
 
 *** session
     :PROPERTIES:
-    ::session: *PL*
+    :session: *PL*
     :END:
 
 **** :results value
 
 
      #+srcname: sval
-     #+begin_src picolisp :var tab=tbl1 :results value :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results value :hlines no
        (+ (caar tab) (caar (cdr tab)))
        (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
      #+end_src
 
      #+results: sval
-     : 5->
+     : 5
 
 
 
@@ -141,7 +141,13 @@ prepend'. If you don't want to see any results in this buffer, use
      #+end_src
 
      #+results: sval-pp
-     | (a\n   (b c d)\n   (e\n      (f (g) (h) (i))\n      (j (k) (l) (m)) )\n   (n o p)\n   q )-> ")"\n | -> "org-babel-picolisp-eoe"\n |   |
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )-> ")"
 
 
 
@@ -155,7 +161,8 @@ prepend'. If you don't want to see any results in this buffer, use
      #+end_src
 
      #+results: sout
-     | 4\n5-> 5\n | -> "org-babel-picolisp-eoe"\n |   |
+     : 4
+     : 5-> 5
 
 
 
@@ -163,6 +170,15 @@ prepend'. If you don't want to see any results in this buffer, use
      #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
      #+end_src
+
+     #+results: sout-pp
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )-> ")"
 
 
 

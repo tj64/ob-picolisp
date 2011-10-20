@@ -1,9 +1,19 @@
-
 * Test Cases for ob-picolisp.el
 Evaluate single codeblocks with C-c C-c (with point inside sourceblock).
 Evaluate subheaders (all sourceblocks under one header of outline-tree)
 with C-c C-v s (with point on subheader). 
 
+If confirming each evaluation seems annoying, set the following
+variable to nil (considering the security issues):
+M-x customize-variable RET org-confirm-babel-evaluate
+
+When experimenting with this code-blocks, results will be replaced by the
+results of the next evaluation (':results replace' is the default
+value). This can be changed by using ':results append' or ':results
+prepend'. If you don't want to see any results in this buffer, use
+':results silent'. 
+
+(on github, view this file in raw-mode)
 
 ** data
 
@@ -54,6 +64,7 @@ with C-c C-v s (with point on subheader).
      : 5
 
 
+
      #+srcname: exval-pp
      #+begin_src picolisp :var tab=tbl1 :results value pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
@@ -70,6 +81,7 @@ with C-c C-v s (with point on subheader).
 
 
 
+
 **** :results output
 
      #+srcname: exout
@@ -82,6 +94,9 @@ with C-c C-v s (with point on subheader).
      #+results: exout
      : 4
      : 5
+
+
+
 
      #+srcname: exout-pp
      #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
@@ -96,6 +111,8 @@ with C-c C-v s (with point on subheader).
      :       (j (k) (l) (m)) )
      :    (n o p)
      :    q )
+
+
 
 
 *** session
@@ -114,7 +131,9 @@ with C-c C-v s (with point on subheader).
      #+end_src
 
      #+results: sval
-     : 5
+     : 5->
+
+
 
      #+srcname: sval-pp
      #+begin_src picolisp :var tab=tbl1 :results pp :hlines no 
@@ -122,13 +141,8 @@ with C-c C-v s (with point on subheader).
      #+end_src
 
      #+results: sval-pp
-     : (a
-     :    (b c d)
-     :    (e
-     :       (f (g) (h) (i))
-     :       (j (k) (l) (m)) )
-     :    (n o p)
-     :    q )
+     | (a\n   (b c d)\n   (e\n      (f (g) (h) (i))\n      (j (k) (l) (m)) )\n   (n o p)\n   q )-> ")"\n | -> "org-babel-picolisp-eoe"\n |   |
+
 
 
 **** :results output
@@ -141,20 +155,14 @@ with C-c C-v s (with point on subheader).
      #+end_src
 
      #+results: sout
-     : 4
-     : 5
+     | 4\n5-> 5\n | -> "org-babel-picolisp-eoe"\n |   |
+
+
 
      #+srcname: sout-pp
      #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
      #+end_src
 
-     #+results: sout-pp
-     : (a
-     :    (b c d)
-     :    (e
-     :       (f (g) (h) (i))
-     :       (j (k) (l) (m)) )
-     :    (n o p)
-     :    q )
+
 

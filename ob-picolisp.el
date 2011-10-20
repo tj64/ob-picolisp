@@ -155,17 +155,15 @@
 then create.  Return the initialized session."
   (unless (string= session-name "none")
     (require 'inferior-picolisp)
-    (let ((session-buffer (save-window-excursion
-                            (run-picolisp org-babel-picolisp-cmd)
-                            (rename-buffer session-name)
-                            (current-buffer))))
-      (if (org-babel-comint-buffer-livep session-buffer)
-          (progn (sit-for .25) session-buffer)
-        (sit-for .5)
-        (org-babel-picolisp-initiate-session session-name)))))
-
-
-
+    ;; provide a reasonable default session name
+    (let ((session (or session-name "*inferior-picolisp*")))
+      ;; check if we already have a live session by this name
+      (if (org-babel-comint-buffer-livep session)
+          (get-buffer session)
+        (save-window-excursion
+          (run-picolisp org-babel-picolisp-cmd)
+          (rename-buffer session-name)
+          (current-buffer))))))
 
 (provide 'ob-picolisp)
 ;;; ob-picolisp.el ends here

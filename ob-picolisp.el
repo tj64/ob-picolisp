@@ -89,23 +89,16 @@
   (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
         (result-params (cdr (assoc :result-params params)))
         (print-level nil) (print-length nil))
-    (let ((expanded-body (if (> (length vars) 0)
-                             (concat "(prog (let ("
-                                     (mapconcat
-                                      (lambda (var)
-                                        (format "%S '%S)"
-                                                (print (car var))
-                                                (print (cdr var))))
-                                      vars "\n      ")
-                                     " \n" body ") )")
-                           body)))
-      (cond
-       ((or (member "code" result-params)
-            (member "pp" result-params))
-        (format "(pretty (out \"/dev/null\" %s))" expanded-body))
-       ((member "value" result-params)
-        (format "(print (out \"/dev/null\" %s))" expanded-body))
-       (t expanded-body)))))
+    (if (> (length vars) 0)
+        (concat "(prog (let ("
+                (mapconcat
+                 (lambda (var)
+                   (format "%S '%S)"
+                           (print (car var))
+                           (print (cdr var))))
+                 vars "\n      ")
+                " \n" body ") )")
+      body)))
 
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is
@@ -119,7 +112,18 @@
 	 ;; either OUTPUT or VALUE which should behave as described above
 	 (result-type (cdr (assoc :result-type params)))
 	 ;; expand the body with `org-babel-expand-body:picolisp'
-	 (full-body (org-babel-expand-body:picolisp body params)))
+	 (full-body (org-babel-expand-body:picolisp body params))
+         ;; wrap body appropriately for the type of evaluation and results
+         (wrapped-body
+          (cond
+           ((or (member "code" result-params)
+                (member "pp" result-params))
+            (format "(pretty (out \"/dev/null\" %s))" full-body))
+           ((and (member "value" result-params) (not session))
+            (format "(print (out \"/dev/null\" %s))" full-body))
+           ((member "value" result-params)
+            (format "(out \"/dev/null\" %s)" full-body))
+           (t full-body))))
     
     ((lambda (result)
        (if (or (member "verbatim" result-params)
@@ -143,7 +147,7 @@
       ; external evaluation
        (let ((script-file (org-babel-temp-file "picolisp-script-")))
 	 (with-temp-file script-file
-	   (insert (concat full-body "(bye)")))
+	   (insert (concat wrapped-body "(bye)")))
          (org-babel-eval
           (format "%s %s"
                   org-babel-picolisp-cmd

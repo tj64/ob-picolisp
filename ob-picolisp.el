@@ -135,16 +135,25 @@
            result
          (read result)))
      (if (not (string= session-name "none"))
-     ; session based evaluation
-	 (org-babel-comint-with-output
-	     (session (format "%S" org-babel-picolisp-eoe) nil full-body)
-	   (progn 
-	     (mapc
-	      (lambda (line)
-		(insert (org-babel-chomp line)) (comint-send-input nil t))
-	      (list full-body))
-	     (comint-simple-send session (format "%S" org-babel-picolisp-eoe))))
-      ; external evaluation
+         ;; session based evaluation
+	 (mapconcat ;; <- joins the list back together into a single string
+          #'identity
+          (butlast ;; <- remove the org-babel-picolisp-eoe line
+           (delq nil
+                 (mapcar
+                  (lambda (line)
+                    (org-babel-chomp ;; remove trailing newlines
+                     (when (> (length line) 0) ;; remove empty lines
+                       (if (and (>= (length line) 3) ;; remove leading "<- "
+                                (string= "-> " (subseq line 0 3)))
+                           (subseq line 3)
+                         line))))
+                  ;; returns a list of the output of each evaluated expression
+                  (org-babel-comint-with-output (session org-babel-picolisp-eoe)
+                    (insert wrapped-body) (comint-send-input)
+                    (insert "'" org-babel-picolisp-eoe) (comint-send-input)))))
+          "\n")
+       ;; external evaluation
        (let ((script-file (org-babel-temp-file "picolisp-script-")))
 	 (with-temp-file script-file
 	   (insert (concat wrapped-body "(bye)")))

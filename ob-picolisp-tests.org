@@ -64,7 +64,6 @@ prepend'. If you don't want to see any results in this buffer, use
      : 5
 
 
-
      #+srcname: exval-pp
      #+begin_src picolisp :var tab=tbl1 :results value pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
@@ -78,6 +77,8 @@ prepend'. If you don't want to see any results in this buffer, use
      :       (j (k) (l) (m)) )
      :    (n o p)
      :    q )
+
+
 
 
 
@@ -96,8 +97,6 @@ prepend'. If you don't want to see any results in this buffer, use
      : 5
 
 
-
-
      #+srcname: exout-pp
      #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
@@ -111,6 +110,7 @@ prepend'. If you don't want to see any results in this buffer, use
      :       (j (k) (l) (m)) )
      :    (n o p)
      :    q )
+
 
 
 
@@ -132,7 +132,6 @@ prepend'. If you don't want to see any results in this buffer, use
 
      #+results: sval
      : 5
-
 
 
      #+srcname: sval-pp
@@ -162,7 +161,7 @@ prepend'. If you don't want to see any results in this buffer, use
 
      #+results: sout
      : 4
-     : 5-> 5
+     : 5
 
 
 
@@ -178,7 +177,9 @@ prepend'. If you don't want to see any results in this buffer, use
      :       (f (g) (h) (i))
      :       (j (k) (l) (m)) )
      :    (n o p)
-     :    q )-> ")"
+     :    q )
+
+
 
 
 

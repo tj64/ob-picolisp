@@ -144,10 +144,23 @@
                   (lambda (line)
                     (org-babel-chomp ;; remove trailing newlines
                      (when (> (length line) 0) ;; remove empty lines
-                       (if (and (>= (length line) 3) ;; remove leading "<- "
-                                (string= "-> " (subseq line 0 3)))
-                           (subseq line 3)
-                         line))))
+		       (cond
+			;; remove leading "-> " from return values
+			((and (>= (length line) 3)
+			      (string= "-> " (subseq line 0 3)))
+			 (subseq line 3))
+			;; remove trailing "-> <<return-value>>" on the
+			;; last line of output
+			((and (member "output" result-params)
+			      (string-match-p "->" line))
+			 (subseq line 0 (string-match "->" line)))
+			(t line)
+			)
+                       ;; (if (and (>= (length line) 3) ;; remove leading "<- "
+                       ;;          (string= "-> " (subseq line 0 3)))
+                       ;;     (subseq line 3)
+                       ;;   line)
+		       )))
                   ;; returns a list of the output of each evaluated expression
                   (org-babel-comint-with-output (session org-babel-picolisp-eoe)
                     (insert wrapped-body) (comint-send-input)

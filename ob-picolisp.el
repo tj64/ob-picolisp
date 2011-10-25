@@ -71,10 +71,11 @@
 ;; optionally define a file extension for this language
 (add-to-list 'org-babel-tangle-lang-exts '("picolisp" . "l"))
 
+;;; interferes with settings in org-babel buffer?
 ;; optionally declare default header arguments for this language
-(defvar org-babel-default-header-args:picolisp
-  '((:colnames . "no"))
-  "Default arguments for evaluating a picolisp source block.")
+;; (defvar org-babel-default-header-args:picolisp
+;;   '((:colnames . "no"))
+;;   "Default arguments for evaluating a picolisp source block.")
 
 (defvar org-babel-picolisp-eoe "org-babel-picolisp-eoe"
   "String to indicate that evaluation has completed.")

@@ -54,7 +54,7 @@ prepend'. If you don't want to see any results in this buffer, use
 **** :results value
 
      #+srcname: exval
-     #+begin_src picolisp :var tab=tbl1 :results value :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results append value :hlines no 
        (+ (caar tab) (caar (cdr tab)))
        (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
@@ -65,7 +65,7 @@ prepend'. If you don't want to see any results in this buffer, use
 
 
      #+srcname: exval-pp
-     #+begin_src picolisp :var tab=tbl1 :results value pp :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results append value pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
      #+end_src
 
@@ -86,7 +86,7 @@ prepend'. If you don't want to see any results in this buffer, use
 **** :results output
 
      #+srcname: exout
-     #+begin_src picolisp :var tab=tbl1 :results output :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results append output :hlines no 
        (+ (caar tab) (caar (cdr tab)))
        (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
@@ -98,7 +98,7 @@ prepend'. If you don't want to see any results in this buffer, use
 
 
      #+srcname: exout-pp
-     #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results append output pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
      #+end_src
 
@@ -124,7 +124,7 @@ prepend'. If you don't want to see any results in this buffer, use
 
 
      #+srcname: sval
-     #+begin_src picolisp :var tab=tbl1 :results value :hlines no
+     #+begin_src picolisp :var tab=tbl1 :results append value :hlines no
        (+ (caar tab) (caar (cdr tab)))
        (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
@@ -135,7 +135,7 @@ prepend'. If you don't want to see any results in this buffer, use
 
 
      #+srcname: sval-pp
-     #+begin_src picolisp :var tab=tbl1 :results pp :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results append pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
      #+end_src
 
@@ -153,7 +153,7 @@ prepend'. If you don't want to see any results in this buffer, use
 **** :results output
 
      #+srcname: sout
-     #+begin_src picolisp :var tab=tbl1 :results output :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results append output :hlines no 
        (+ (caar tab) (caar (cdr tab)))
        (println 4)
        (print (+ (caar tab) (caar (cdr tab))))
@@ -166,7 +166,7 @@ prepend'. If you don't want to see any results in this buffer, use
 
 
      #+srcname: sout-pp
-     #+begin_src picolisp :var tab=tbl1 :results output pp :hlines no 
+     #+begin_src picolisp :var tab=tbl1 :results append output pp :hlines no 
        '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
      #+end_src
 

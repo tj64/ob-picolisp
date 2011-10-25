@@ -1,0 +1,583 @@
+* Test Cases for ob-picolisp.el
+
+
+** Possible combinations of header arguments
+
+    #+tblname: header-args-combinations
+    | evaluation | collection | type              |
+    | (:session) | (:results) | (:results)        |
+    |------------+------------+-------------------|
+    | external   | value      | table (vector)    |
+    |            |            | scalar (verbatim) |
+    |            |            | file              |
+    |            |            | raw (org)         |
+    |            |            | html              |
+    |            |            | latex             |
+    |            |            | code              |
+    |            |            | pp                |
+    |            | output     | table (vector)    |
+    |            |            | scalar (verbatim) |
+    |            |            | file              |
+    |            |            | raw (org)         |
+    |            |            | html              |
+    |            |            | latex             |
+    |            |            | code              |
+    |            |            | pp                |
+    | session    | value      | table (vector)    |
+    |            |            | scalar (verbatim) |
+    |            |            | file              |
+    |            |            | raw (org)         |
+    |            |            | html              |
+    |            |            | latex             |
+    |            |            | code              |
+    |            |            | pp                |
+    |            | output     | table (vector)    |
+    |            |            | scalar (verbatim) |
+    |            |            | file              |
+    |            |            | raw (org)         |
+    |            |            | html              |
+    |            |            | latex             |
+    |            |            | code              |
+    |            |            | pp                |
+    
+    #+tblname: other-header-args
+    
+    | :results   | silent   | replace | append   | prepend |
+    | (handling) |          |         |          |         |
+    | :exports   | code     | results | both     | none    |
+    | :comments  | yes      | (no?)   |          |         |
+    | :noweb     | no       | yes     |          |         |
+    | :tangle    | yes      | no      | filename |         |
+    | :no-expand |          |         |          |         |
+    | :file      |          |         |          |         |
+    | :dir       |          |         |          |         |
+    | :cache     | no       | yes     |          |         |
+    | :var       | x=y      |         |          |         |
+    | :hlines    | no       | yes     |          |         |
+    | :colnames  | nil      | no      | yes      |         |
+    | :rownames  | no       | yes     |          |         |
+    | :shebang   | "string" |         |          |         |
+    | :eval      | never    | query   |          |         |
+
+
+** data
+
+*** table-data
+    :PROPERTIES:
+    :hlines:   no
+    :END:
+
+    #+tblname: tbl1
+    | 1 | 2 | 3 |
+    |---+---+---|
+    | 4 | 5 | 6 |
+    | 7 | 8 | 9 |
+
+    #+tblname: tbl2
+    | col1 | col2 | col3 |
+    |------+------+------|
+    |    4 |    5 |    6 |
+    |    7 |    8 |    9 |
+
+
+    #+tblname: tbl3
+    | row1 | 2 | 3 |
+    |------+---+---|
+    | row2 | 5 | 6 |
+    | row3 | 8 | 9 |
+
+
+    #+tblname: tbl4
+
+    |      | col2 | col3 |
+    |------+------+------|
+    | row2 |    5 |    6 |
+    | row3 |    8 |    9 |
+
+
+
+
+** Testcases 
+   :PROPERTIES:
+   :var:      tbl=tbl1
+   :hlines:   no
+   :colnames: no
+   :END:
+
+
+
+*** Turn off confirmation of evaluations
+
+#+begin_src emacs-lisp :results silent
+  (if org-confirm-babel-evaluate
+           (setq org-confirm-babel-evaluate nil))
+#+end_src
+ 
+
+*** External Evaluation
+
+**** :results value
+
+     #+srcname: exvaltable
+     #+begin_src picolisp  :results value table
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: exvaltable
+     | 5 | 7 | 9 |
+
+
+     #+srcname: exvalscalar
+     #+begin_src picolisp  :results value scalar
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: exvalscalar
+     : (5 7 9)
+
+
+     #+srcname: exvalorg
+     #+begin_src picolisp  :results value org
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: exvalorg
+     #+BEGIN_ORG
+     | 5 | 7 | 9 |
+     #+END_ORG
+
+
+     #+srcname: exvalhtml
+     #+begin_src picolisp  :results value html  
+       (load  "@lib/http.l" "@lib/xhtml.l" "@lib/form.l")
+       
+       (html 0 "Hello" "@lib.css" NIL
+          (<h1> NIL "Hello World!")
+          (<br> "This is some text.")
+          (ht:Prin "And this is a number: " (+ 1 2 3)) )
+     #+end_src
+
+     #+results: exvalhtml
+     #+BEGIN_HTML
+     </html>
+     #+END_HTML
+
+     #+srcname: exvallatex
+     #+begin_src picolisp  :results value latex
+       (str '(This is  \\emph{emphased text}   with some math: 
+               $sum_{0 \le i \le n} f(i,x)$ ))
+     #+end_src
+
+     #+results: exvallatex
+     #+BEGIN_LaTeX
+     This is \emph {emphased text} with some math: $sum_ {0 \le i \le n} f (i x) $
+     #+END_LaTeX
+
+     #+srcname: exvalcode1
+     #+begin_src picolisp  :results value code
+       (pp 'pretty)
+     #+end_src
+
+     #+results: exvalcode1
+     #+BEGIN_SRC picolisp
+     pretty
+     #+END_SRC
+
+     #+srcname: exvalcode2
+     #+begin_src picolisp  :results value code
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: exvalcode2
+     #+BEGIN_SRC picolisp
+     (a
+	(b c d)
+	(e
+	   (f (g) (h) (i))
+	   (j (k) (l) (m)) )
+	(n o p)
+	q )
+     #+END_SRC
+
+
+     #+srcname: exvalpp
+     #+begin_src picolisp  :results value pp
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: exvalpp
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )
+
+
+
+
+**** :results output
+
+     #+srcname: exouttable
+     #+begin_src picolisp  :results output table
+       (println 4)
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: exouttable
+     : 4
+
+     #+srcname: exoutscalar
+     #+begin_src picolisp  :results output scalar
+       (println 4)
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: exoutscalar
+     : 4
+
+
+    #+srcname: exoutorg
+     #+begin_src picolisp  :results output org
+       (println 4)
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: exoutorg
+     #+BEGIN_ORG
+     4
+     #+END_ORG
+
+
+     #+srcname: exoutlatex
+     #+begin_src picolisp  :results output latex
+       (print (str '(This is \emph{emphased text}   with some math: 
+               $sum_{0 \le i \le n} f(i,x)$ )))
+     #+end_src
+
+     #+results: exoutlatex
+     #+BEGIN_LaTeX
+     "This is emph {emphased text} with some math: $sum_ {0 \\le i \\le n} f (i x) $"
+     #+END_LaTeX
+
+
+
+
+     #+srcname: exoutcode1
+     #+begin_src picolisp  :results output code
+      (pp 'pretty)
+     #+end_src
+
+     #+results: exoutcode1
+     #+BEGIN_SRC picolisp
+     pretty
+     #+END_SRC
+
+     #+results:
+
+ 
+      #+srcname: exoutcode2
+     #+begin_src picolisp  :results output code
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: exoutcode2
+     #+BEGIN_SRC picolisp
+     (a
+	(b c d)
+	(e
+	   (f (g) (h) (i))
+	   (j (k) (l) (m)) )
+	(n o p)
+	q )
+     #+END_SRC
+
+     #+results:
+
+
+     #+srcname: exoutpp
+     #+begin_src picolisp  :results output pp
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: exoutpp
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )
+
+
+     #+srcname: exouthtml
+     #+begin_src picolisp  :results output html  
+       (load  "@lib/http.l" "@lib/xhtml.l" "@lib/form.l")
+       
+       (html 0 "Hello" "@lib.css" NIL
+        (<h1> NIL "Hello World!")
+          (<br> "This is some text.")
+          (ht:Prin "And this is a number: " (+ 1 2 3)) )
+     #+end_src
+
+     #+results: exouthtml
+     #+BEGIN_HTML
+     HTTP/1.0 200 OK
+     Server: PicoLisp
+     Date: Tue, 25 Oct 2011 19:11:31 GMT
+     Cache-Control: max-age=0
+     Cache-Control: private, no-store, no-cache
+     Content-Type: text/html; charset=utf-8
+     
+     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+     <head>
+     <title>Hello</title>
+     <link rel="stylesheet" type="text/css" href="http://:/@lib.css"/>
+     <script type="text/javascript" src="http://://usr/lib/picolisp/lib/form.js"></script>
+     </head>
+     <body><h1>Hello World!</h1>
+     This is some text.<br/>
+     And this is a number: 6</body></html>
+     #+END_HTML
+
+
+
+
+*** Session-based Evaluation
+    :PROPERTIES:
+    :session: *PL*
+    :END:
+
+**** :results value
+
+     #+srcname: svaltable
+     #+begin_src picolisp  :results value table
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: svaltable
+     | 5 | 7 | 9 |
+
+
+     #+srcname: svalscalar
+     #+begin_src picolisp  :results value scalar
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: svalscalar
+     : (5 7 9)
+
+
+     #+srcname: svalorg
+     #+begin_src picolisp  :results value org
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: svalorg
+     #+BEGIN_ORG
+     | 5 | 7 | 9 |
+     #+END_ORG
+
+
+     #+srcname: svalhtml
+     #+begin_src picolisp  :results value html  
+       (load  "@lib/http.l" "@lib/xhtml.l" "@lib/form.l")
+       
+       (html 0 "Hello" "@lib.css" NIL
+          (<h1> NIL "Hello World!")
+          (<br> "This is some text.")
+          (ht:Prin "And this is a number: " (+ 1 2 3)) )
+     #+end_src
+
+     #+results: svalhtml
+     #+BEGIN_HTML
+     </html>
+     #+END_HTML
+
+     #+srcname: svallatex
+     #+begin_src picolisp  :results value latex
+       (str '(This is  \\emph{emphased text}   with some math: 
+               $sum_{0 \le i \le n} f(i,x)$ ))
+     #+end_src
+
+     #+results: svallatex
+     #+BEGIN_LaTeX
+     $sum_
+     #+END_LaTeX
+
+     #+srcname: svalcode1
+     #+begin_src picolisp  :results value code
+       (pp 'pretty)
+     #+end_src
+
+     #+results: svalcode1
+     #+BEGIN_SRC picolisp
+     pretty-> pretty
+     #+END_SRC
+
+     #+results:
+
+     #+srcname: svalcode2
+     #+begin_src picolisp  :results value code
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: svalcode2
+     #+BEGIN_SRC picolisp
+     (a
+	(b c d)
+	(e
+	   (f (g) (h) (i))
+	   (j (k) (l) (m)) )
+	(n o p)
+	q )-> ")"
+     #+END_SRC
+
+
+
+     #+srcname: svalpp
+     #+begin_src picolisp  :results value pp
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: svalpp
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )-> ")"
+
+
+
+
+
+**** :results output
+
+     #+srcname: souttable
+     #+begin_src picolisp  :results output table
+       (println 4)
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: souttable
+     : 4
+
+     #+srcname: soutscalar
+     #+begin_src picolisp  :results output scalar
+       (println 4)
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: soutscalar
+     : 4
+
+
+     #+srcname: soutorg
+     #+begin_src picolisp  :results output org
+       (println 4)
+       (mapcar + (car tbl) (cadr tbl))
+     #+end_src
+
+     #+results: soutorg
+     #+BEGIN_ORG
+     4
+     #+END_ORG
+
+     #+srcname: soutlatex
+     #+begin_src picolisp  :results output latex
+       (print (str '(This is \emph{emphased text}   with some math: 
+               $sum_{0 \le i \le n} f(i,x)$ )))
+     #+end_src
+
+     #+results: soutlatex
+     #+BEGIN_LaTeX
+     $sum_ {0 \\le i \\le n} f (i x) $"
+     #+END_LaTeX
+
+
+
+
+     #+srcname: soutcode1
+     #+begin_src picolisp  :results output code
+      (pp 'pretty)
+     #+end_src
+
+     #+results: soutcode1
+     #+BEGIN_SRC picolisp
+     pretty
+     #+END_SRC
+
+     
+     #+srcname: soutcode2
+     #+begin_src picolisp  :results output code
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: soutcode2
+     #+BEGIN_SRC picolisp
+     (a
+	(b c d)
+	(e
+	   (f (g) (h) (i))
+	   (j (k) (l) (m)) )
+	(n o p)
+	q )
+     #+END_SRC
+
+
+
+     #+srcname: soutpp
+     #+begin_src picolisp  :results output pp
+       '(a (b c d) (e (f (g) (h) (i)) (j (k) (l) (m))) (n o p) q)
+     #+end_src
+
+     #+results: soutpp
+     : (a
+     :    (b c d)
+     :    (e
+     :       (f (g) (h) (i))
+     :       (j (k) (l) (m)) )
+     :    (n o p)
+     :    q )
+
+
+
+     #+srcname: southtml
+     #+begin_src picolisp  :results output html  
+       (load  "@lib/http.l" "@lib/xhtml.l" "@lib/form.l")
+       
+       (html 0 "Hello" "@lib.css" NIL
+        (<h1> NIL "Hello World!")
+          (<br> "This is some text.")
+          (ht:Prin "And this is a number: " (+ 1 2 3)) )
+     #+end_src
+
+     #+results: southtml
+     #+BEGIN_HTML
+     # <table> redefined
+     HTTP/1.0 200 OK
+     PicoLisp
+     Tue, 25 Oct 2011 19:47:07 GMT
+     max-age=0
+     private, no-store, no-cache
+     text/html; charset=utf-8
+     DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+     //www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+     <head>
+     <title>Hello</title>
+     //:/@lib.css"/>
+     //://usr/lib/picolisp/lib/form.js"></script>
+     </head>
+     </h1>
+     This is some text.<br/>
+     6</body></html>
+     #+END_HTML
+
+
+
+
+

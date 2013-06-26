@@ -62,9 +62,7 @@
 ;; PicoLisp is an extremely productive framework for the development
 ;; of interactive web-applications (on top of a database). 
 
-;;; Requirements:
-
-;;; Code:
+;;; Code
 ;;;; Requires
 (require 'ob)
 (require 'ob-eval)
@@ -72,8 +70,9 @@
 ;; optionally define a file extension for this language
 (add-to-list 'org-babel-tangle-lang-exts '("picolisp" . "l"))
 
-
 ;;;; Variables
+
+;;;;; Vars
 ;; ;; interferes with settings in org-babel buffer?
 ;; optionally declare default header arguments for this language
 ;; (defvar org-babel-default-header-args:picolisp
@@ -89,18 +88,53 @@
 Otherwise, try to find and call a local installation before falling back to
 the global installation.")
 
+;;;;; Customs
+
 (defcustom org-babel-picolisp-cmd "pil"
-  "Name of command used to evaluate picolisp blocks."
+  "Name of command used to evaluate picolisp blocks.
+
+The default is a call to a global PicoLisp installation."
   :group 'org-babel
   :type 'string)
 
 ;;;; Functions
 
-(defun org-babel-picolisp-toggle-global-install ()
-  "")
+;;;;; Non-Interactive Functions
+
+;; courtesy of Michael Heerdegen
+(defun org-babel-picolisp--split-path (path)
+  (org-babel-picolisp--split-path-1 path ()))
+
+;; courtesy of Michael Heerdegen
+(defun org-babel-picolisp--split-path-1 (path accum)
+  (let ((dir  (directory-file-name (file-name-directory path)))
+	(name (file-name-nondirectory path)))
+    (if (equal dir path)
+	accum
+      (org-babel-picolisp--split-path-1 dir (cons name accum)))))
 
 (defun org-babel-picolisp-local-cmd ()
-  "")
+  "Return a context-sensitive call to a local PicoLisp installation.
+
+Try to figure out if the Org-mode file with PicoLisp
+source-blocks to be executed is located inside a (local) PicoLisp
+installation, and if so, at what relative level in the file
+hierachy. Return a call to the containing local PicoLisp
+installation or fall back to `org-babel-picolisp-cmd'."
+  (let* ((file-name-as-list
+         (org-babel-picolisp--split-path
+          (expand-file-name buffer-file-name)))
+         (path-length (1- (length
+                           (member "picoLisp" file-name-as-list)))))
+    (if (< path-length 0)
+        org-babel-picolisp-cmd
+      (case path-length
+        (1 "./pil")
+        (2 "../pil")
+        (t (let ((cmd "pil"))
+             (dotimes (i (1- path-length) cmd)
+                   (setq cmd (concat "../" cmd)))))))))
+
 
 (defun org-babel-expand-body:picolisp (body params &optional processed-params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -190,7 +224,9 @@ the global installation.")
 	   (insert (concat wrapped-body "(bye)")))
          (org-babel-eval
           (format "%s %s"
-                  org-babel-picolisp-cmd
+                  (if (not org-babel-picolisp-use-global-install-p)
+                      org-babel-picolisp-cmd
+                    (org-babel-picolisp-local-cmd))
                   (org-babel-process-file-name script-file))
           ""))))))
 
@@ -205,9 +241,29 @@ then create.  Return the initialized session."
       (if (org-babel-comint-buffer-livep session)
           (get-buffer session)
         (save-window-excursion
-          (run-picolisp org-babel-picolisp-cmd)
+          (run-picolisp
+           (if (not org-babel-picolisp-use-global-install-p)
+                      org-babel-picolisp-cmd
+                    (org-babel-picolisp-local-cmd)))
           (rename-buffer session-name)
           (current-buffer))))))
+
+;;;;; Commands
+
+(defun org-babel-picolisp-toggle-cmd (&optional arg)
+  "Toggle between use of global or local PicoLisp installation. 
+
+When `org-babel-picolisp-use-global-install-p' is nil, it will be
+set to t, otherwise it will be set to nil. With prefix argument
+ARG, use the global PicoLisp installation if ARG is positive,
+otherwise try calling a local installation before falling back to
+the global installation."
+  (interactive "P")
+  (setq org-babel-picolisp-use-global-install-p
+	(if (null arg)
+	    (not org-babel-picolisp-use-global-install-p)
+	  (> (prefix-numeric-value arg) 0))))
+
 
 ;;;; Provide
 

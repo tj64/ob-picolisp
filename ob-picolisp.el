@@ -1,13 +1,13 @@
 ;;; ob-picolisp.el --- org-babel functions for picolisp evaluation
 
-;; Copyright (C) 2011 Thorsten Jolitz
-
+;;;; Meta Data
+;; Copyright (C) 2011, 2013 Thorsten Jolitz
 ;; Authors: Thorsten Jolitz and Eric Schulte
 ;; Keywords: literate programming, reproducible research, 
 ;; Homepage: http://orgmode.org
 ;; Version: 1.0
 
-;;;; Contact:
+;;;; Contact
 
 ;; For comments, bug reports, questions, etc, you can contact the
 ;; first author via email to
@@ -17,7 +17,7 @@
 
 ;; This file is NOT (yet) part of GNU Emacs
 
-;;; License:
+;;;; License
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Commentary: 
+;;;; Commentary
 
 ;; This library enables the use of PicoLisp in the multi-language
 ;; programming framework Org-Babel. PicoLisp is a minimal yet
@@ -65,13 +65,16 @@
 ;;; Requirements:
 
 ;;; Code:
+;;;; Requires
 (require 'ob)
 (require 'ob-eval)
 
 ;; optionally define a file extension for this language
 (add-to-list 'org-babel-tangle-lang-exts '("picolisp" . "l"))
 
-;;; interferes with settings in org-babel buffer?
+
+;;;; Variables
+;; ;; interferes with settings in org-babel buffer?
 ;; optionally declare default header arguments for this language
 ;; (defvar org-babel-default-header-args:picolisp
 ;;   '((:colnames . "no"))
@@ -80,10 +83,24 @@
 (defvar org-babel-picolisp-eoe "org-babel-picolisp-eoe"
   "String to indicate that evaluation has completed.")
 
+(defvar org-babel-picolisp-use-global-install-p nil
+  "Non-nil, if the global PicoLisp installation should be used.
+
+Otherwise, try to find and call a local installation before falling back to
+the global installation.")
+
 (defcustom org-babel-picolisp-cmd "pil"
   "Name of command used to evaluate picolisp blocks."
   :group 'org-babel
   :type 'string)
+
+;;;; Functions
+
+(defun org-babel-picolisp-toggle-global-install ()
+  "")
+
+(defun org-babel-picolisp-local-cmd ()
+  "")
 
 (defun org-babel-expand-body:picolisp (body params &optional processed-params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -192,5 +209,7 @@ then create.  Return the initialized session."
           (rename-buffer session-name)
           (current-buffer))))))
 
+;;;; Provide
+
 (provide 'ob-picolisp)
-;;; ob-picolisp.el ends here
+;; ob-picolisp.el ends here

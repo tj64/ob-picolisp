@@ -122,11 +122,13 @@ installation, and if so, at what relative level in the file
 hierachy. Return a call to the containing local PicoLisp
 installation or fall back to `org-babel-picolisp-cmd'."
   (let* ((file-name-as-list
-         (org-babel-picolisp--split-path
-          (expand-file-name buffer-file-name)))
-         (path-length (1- (length
-                           (member "picoLisp" file-name-as-list)))))
-    (if (< path-length 0)
+	  (when buffer-file-name
+	    (org-babel-picolisp--split-path
+	     (expand-file-name buffer-file-name))))
+	 (path-length
+	  (1- (length (member "picoLisp" file-name-as-list)))))
+    (if (and (integer-or-marker-p path-length)
+	     (< path-length 0))
         org-babel-picolisp-cmd
       (case path-length
         (1 "./pil")
@@ -224,7 +226,7 @@ installation or fall back to `org-babel-picolisp-cmd'."
 	   (insert (concat wrapped-body "(bye)")))
          (org-babel-eval
           (format "%s %s"
-                  (if (not org-babel-picolisp-use-global-install-p)
+                  (if org-babel-picolisp-use-global-install-p
                       org-babel-picolisp-cmd
                     (org-babel-picolisp-local-cmd))
                   (org-babel-process-file-name script-file))
@@ -262,7 +264,9 @@ the global installation."
   (setq org-babel-picolisp-use-global-install-p
 	(if (null arg)
 	    (not org-babel-picolisp-use-global-install-p)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (message "Use global installation of PicoLisp set to %s"
+           org-babel-picolisp-use-global-install-p))
 
 
 ;;;; Provide

@@ -28,15 +28,23 @@
 ;; programming framework Org-Babel.  PicoLisp is a minimal yet
 ;; fascinating lisp dialect and a highly productive application
 ;; framework for web-based client-server applications on top of
-;; object-oriented databases.  A good way to learn PicoLisp is to first
+;; object-oriented databases. A good way to learn PicoLisp is to first
 ;; read Paul Grahams essay "The hundred year language"
 ;; (http://www.paulgraham.com/hundred.html) and then study the various
 ;; documents and essays published in the PicoLisp wiki
-;; (http://picolisp.com/5000/-2.html). PicoLisp is included in some
-;; GNU/Linux Distributions, and can be downloaded here:
-;; http://software-lab.de/down.html.  It ships with a picolisp-mode and
-;; an inferior-picolisp-mode for Emacs (to be found in the /lib/el/
-;; directory).
+;; (https://picolisp.com/wiki/?home). There is also a PicoLisp Blog out
+;; there (https://picolisp-explored.com/), as well as a huge amount of
+;; code examples on https://rosettacode.org/wiki/Category:PicoLisp,
+;; written by the creator of PicoLisp himself.
+;;
+;; PicoLisp is included in some GNU/Linux Distributions, and can be
+;; downloaded here: http://software-lab.de/down.html.
+;; It used to ship with a picolisp-mode and an inferior-picolisp-mode
+;; for Emacs (to be found in the /lib/el/ directory) until Pil64, but
+;; from Pil21 on these libraries have to be found on GitHub
+;; (e.g. https://github.com/tj64). There are two Emacs modes now,
+;; picolisp-mode (older, more official) and plist-mode (newer, less
+;; tested). Both rely on the same inferior-picolisp.el file.
 
 ;; Although it might seem more natural to use Emacs Lisp for most
 ;; Lisp-based programming tasks inside Org, an Emacs library written
@@ -128,9 +136,9 @@ installation or fall back to `org-babel-picolisp-cmd'."
 
 (defun org-babel-expand-body:picolisp (body params &optional processed-params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (mapcar #'cdr (org-babel--get-vars params)))
-        (result-params (cdr (assoc :result-params params)))
-        (print-level nil) (print-length nil))
+  (let ((vars (org-babel--get-vars params))
+        (print-level nil)
+	(print-length nil))
     (if (> (length vars) 0)
         (concat "(prog (let ("
                 (mapconcat
@@ -144,18 +152,18 @@ installation or fall back to `org-babel-picolisp-cmd'."
 
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is
- called by `org-babel-execute-src-block'"           
+ called by `org-babel-execute-src-block'"
   (message "executing Picolisp source code block")
   (let* (
-	 ;; name of the session or "none"
-	 (session-name (cdr (assoc :session params)))
-	 ;; set the session if the session variable is non-nil
+	 ;; Name of the session or "none".
+	 (session-name (cdr (assq :session params)))
+	 ;; Set the session if the session variable is non-nil.
 	 (session (org-babel-picolisp-initiate-session session-name))
-	 ;; either OUTPUT or VALUE which should behave as described above
-	 (result-type (cdr (assoc :result-type params)))
-	 ;; expand the body with `org-babel-expand-body:picolisp'
+	 ;; Either OUTPUT or VALUE which should behave as described above.
+	 (result-params (cdr (assq :result-params params)))
+	 ;; Expand the body with `org-babel-expand-body:picolisp'.
 	 (full-body (org-babel-expand-body:picolisp body params))
-         ;; wrap body appropriately for the type of evaluation and results
+         ;; Wrap body appropriately for the type of evaluation and results.
          (wrapped-body
           (cond
            ((or (member "code" result-params)

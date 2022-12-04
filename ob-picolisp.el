@@ -128,7 +128,7 @@ installation or fall back to `org-babel-picolisp-cmd'."
 
 (defun org-babel-expand-body:picolisp (body params &optional processed-params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
+  (let ((vars (mapcar #'cdr (org-babel--get-vars params)))
         (result-params (cdr (assoc :result-params params)))
         (print-level nil) (print-length nil))
     (if (> (length vars) 0)

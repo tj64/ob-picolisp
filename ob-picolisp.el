@@ -1,79 +1,68 @@
-;;; ob-picolisp.el --- org-babel functions for picolisp evaluation
+;;; ob-picolisp.el --- Babel Functions for Picolisp  -*- lexical-binding: t; -*-
 
-;;;; Meta Data
-;; Copyright (C) 2011, 2013 Thorsten Jolitz
-;; Authors: Thorsten Jolitz and Eric Schulte
-;; Keywords: literate programming, reproducible research, 
-;; Homepage: http://orgmode.org
-;; Version: 1.0
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
-;;;; Contact
+;; Authors: Thorsten Jolitz
+;;	 Eric Schulte
+;; Keywords: literate programming, reproducible research
+;; Homepage: https://orgmode.org
 
-;; For comments, bug reports, questions, etc, you can contact the
-;; first author via email to
-;; (concat "t" "jolitz") at gmail dot com 
-;; or post a question in the org-newsgroup (see homepage) with prefix
-;; [babel] in the header.
+;; This file is part of GNU Emacs.
 
-;; This file is NOT (yet) part of GNU Emacs
-
-;;;; License
-
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
 
-;;;; Commentary
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;; This library enables the use of PicoLisp in the multi-language
-;; programming framework Org-Babel. PicoLisp is a minimal yet
+;; programming framework Org-Babel.  PicoLisp is a minimal yet
 ;; fascinating lisp dialect and a highly productive application
 ;; framework for web-based client-server applications on top of
-;; object-oriented databases. A good way to learn PicoLisp is to first
+;; object-oriented databases.  A good way to learn PicoLisp is to first
 ;; read Paul Grahams essay "The hundred year language"
 ;; (http://www.paulgraham.com/hundred.html) and then study the various
 ;; documents and essays published in the PicoLisp wiki
 ;; (http://picolisp.com/5000/-2.html). PicoLisp is included in some
 ;; GNU/Linux Distributions, and can be downloaded here:
-;; http://software-lab.de/down.html. It ships with a picolisp-mode and
-;; a inferior-picolisp-mode for Emacs (to be found in the /lib/el/
+;; http://software-lab.de/down.html.  It ships with a picolisp-mode and
+;; an inferior-picolisp-mode for Emacs (to be found in the /lib/el/
 ;; directory).
 
 ;; Although it might seem more natural to use Emacs Lisp for most
-;; Lisp-based programming tasks inside Org-Mode, an Emacs library
-;; written in Emacs Lisp, PicoLisp has at least two outstanding
-;; features that make it a valuable addition to Org-Babel:
+;; Lisp-based programming tasks inside Org, an Emacs library written
+;; in Emacs Lisp, PicoLisp has at least two outstanding features that
+;; make it a valuable addition to Org Babel:
 
 ;; PicoLisp _is_ an object-oriented database with a Prolog-based query
 ;; language implemented in PicoLisp (Pilog). Database objects are
-;; first-class members of the language. 
+;; first-class members of the language.
 
 ;; PicoLisp is an extremely productive framework for the development
-;; of interactive web-applications (on top of a database). 
+;; of interactive web-applications (on top of a database).
 
-;;; Code
-;;;; Requires
+;;; Requirements:
+
+;;; Code:
 (require 'ob)
-(require 'ob-eval)
+(require 'comint)
+
+(declare-function run-picolisp "ext:inferior-picolisp" (cmd))
+(defvar org-babel-tangle-lang-exts) ;; Autoloaded
 
 ;; optionally define a file extension for this language
 (add-to-list 'org-babel-tangle-lang-exts '("picolisp" . "l"))
 
-;;;; Variables
-
-;;;;; Vars
-;; ;; interferes with settings in org-babel buffer?
+;;; interferes with settings in org-babel buffer?
 ;; optionally declare default header arguments for this language
 ;; (defvar org-babel-default-header-args:picolisp
 ;;   '((:colnames . "no"))
@@ -91,10 +80,9 @@ the global installation.")
 ;;;;; Customs
 
 (defcustom org-babel-picolisp-cmd "pil"
-  "Name of command used to evaluate picolisp blocks.
-
-The default is a call to a global PicoLisp installation."
+  "Name of command used to evaluate picolisp blocks."
   :group 'org-babel
+  :version "24.1"
   :type 'string)
 
 ;;;; Functions

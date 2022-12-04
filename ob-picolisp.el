@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Authors: Thorsten Jolitz
-;;	 Eric Schulte
+;;       Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
 
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This library enables the use of PicoLisp in the multi-language
-;; programming framework Org-Babel.  PicoLisp is a minimal yet
+;; programming framework Org-Babel. PicoLisp is a minimal yet
 ;; fascinating lisp dialect and a highly productive application
 ;; framework for web-based client-server applications on top of
 ;; object-oriented databases. A good way to learn PicoLisp is to first
@@ -42,9 +42,14 @@
 ;; It used to ship with a picolisp-mode and an inferior-picolisp-mode
 ;; for Emacs (to be found in the /lib/el/ directory) until Pil64, but
 ;; from Pil21 on these libraries have to be found on GitHub
-;; (e.g. https://github.com/tj64). There are two Emacs modes now,
-;; picolisp-mode (older, more official) and plist-mode (newer, less
-;; tested). Both rely on the same inferior-picolisp.el file.
+;; (e.g. https://github.com/tj64). The same holds for former library
+;; files for line editing (led.l and eled.l, replaced by readline lib
+;; in Pil21) and for symbol editing (edit.l and eedit.l, replaced by
+;; the use of VIP, the editor written in and shipped with Pil21).
+;;
+;; There are two Emacs modes now, picolisp-mode (older, more official)
+;; and plist-mode (newer, less tested). Both rely on the same
+;; inferior-picolisp.el file.
 
 ;; Although it might seem more natural to use Emacs Lisp for most
 ;; Lisp-based programming tasks inside Org, an Emacs library written
@@ -85,17 +90,16 @@
 Otherwise, try to find and call a local installation before falling back to
 the global installation.")
 
-;;;;; Customs
+;;; Customs
 
 (defcustom org-babel-picolisp-cmd "pil"
   "Name of command used to evaluate picolisp blocks."
   :group 'org-babel
-  :version "24.1"
+  :version "28.2"
   :type 'string)
 
-;;;; Functions
-
-;;;;; Non-Interactive Functions
+;;; Functions
+;;; Non-Interactive Functions
 
 ;; courtesy of Michael Heerdegen
 (defun org-babel-picolisp--split-path (path)
@@ -104,9 +108,9 @@ the global installation.")
 ;; courtesy of Michael Heerdegen
 (defun org-babel-picolisp--split-path-1 (path accum)
   (let ((dir  (directory-file-name (file-name-directory path)))
-	(name (file-name-nondirectory path)))
+        (name (file-name-nondirectory path)))
     (if (equal dir path)
-	accum
+        accum
       (org-babel-picolisp--split-path-1 dir (cons name accum)))))
 
 (defun org-babel-picolisp-local-cmd ()
@@ -118,15 +122,15 @@ installation, and if so, at what relative level in the file
 hierachy. Return a call to the containing local PicoLisp
 installation or fall back to `org-babel-picolisp-cmd'."
   (let* ((file-name-as-list
-	  (when buffer-file-name
-	    (org-babel-picolisp--split-path
-	     (expand-file-name buffer-file-name))))
-	 (path-length
-	  (1- (length (member "picoLisp" file-name-as-list)))))
+          (when buffer-file-name
+            (org-babel-picolisp--split-path
+             (expand-file-name buffer-file-name))))
+         (path-length
+          (1- (length (member "picoLisp" file-name-as-list)))))
     (if (and (integer-or-marker-p path-length)
-	     (< path-length 0))
+             (< path-length 0))
         org-babel-picolisp-cmd
-      (case path-length
+      (cl-case path-length
         (1 "./pil")
         (2 "../pil")
         (t (let ((cmd "pil"))
@@ -138,7 +142,7 @@ installation or fall back to `org-babel-picolisp-cmd'."
   "Expand BODY according to PARAMS, return the expanded body."
   (let ((vars (org-babel--get-vars params))
         (print-level nil)
-	(print-length nil))
+        (print-length nil))
     (if (> (length vars) 0)
         (concat "(prog (let ("
                 (mapconcat
@@ -155,14 +159,14 @@ installation or fall back to `org-babel-picolisp-cmd'."
  called by `org-babel-execute-src-block'"
   (message "executing Picolisp source code block")
   (let* (
-	 ;; Name of the session or "none".
-	 (session-name (cdr (assq :session params)))
-	 ;; Set the session if the session variable is non-nil.
-	 (session (org-babel-picolisp-initiate-session session-name))
-	 ;; Either OUTPUT or VALUE which should behave as described above.
-	 (result-params (cdr (assq :result-params params)))
-	 ;; Expand the body with `org-babel-expand-body:picolisp'.
-	 (full-body (org-babel-expand-body:picolisp body params))
+         ;; Name of the session or "none".
+         (session-name (cdr (assq :session params)))
+         ;; Set the session if the session variable is non-nil.
+         (session (org-babel-picolisp-initiate-session session-name))
+         ;; Either OUTPUT or VALUE which should behave as described above.
+         (result-params (cdr (assq :result-params params)))
+         ;; Expand the body with `org-babel-expand-body:picolisp'.
+         (full-body (org-babel-expand-body:picolisp body params))
          ;; Wrap body appropriately for the type of evaluation and results.
          (wrapped-body
           (cond
@@ -174,7 +178,7 @@ installation or fall back to `org-babel-picolisp-cmd'."
            ((member "value" result-params)
             (format "(out \"/dev/null\" %s)" full-body))
            (t full-body))))
-    
+
     ((lambda (result)
        (if (or (member "verbatim" result-params)
                (member "scalar" result-params)
@@ -186,7 +190,7 @@ installation or fall back to `org-babel-picolisp-cmd'."
          (read result)))
      (if (not (string= session-name "none"))
          ;; session based evaluation
-	 (mapconcat ;; <- joins the list back together into a single string
+         (mapconcat ;; <- joins the list back together into a single string
           #'identity
           (butlast ;; <- remove the org-babel-picolisp-eoe line
            (delq nil
@@ -194,23 +198,23 @@ installation or fall back to `org-babel-picolisp-cmd'."
                   (lambda (line)
                     (org-babel-chomp ;; remove trailing newlines
                      (when (> (length line) 0) ;; remove empty lines
-		       (cond
-			;; remove leading "-> " from return values
-			((and (>= (length line) 3)
-			      (string= "-> " (subseq line 0 3)))
-			 (subseq line 3))
-			;; remove trailing "-> <<return-value>>" on the
-			;; last line of output
-			((and (member "output" result-params)
-			      (string-match-p "->" line))
-			 (subseq line 0 (string-match "->" line)))
-			(t line)
-			)
+                       (cond
+                        ;; remove leading "-> " from return values
+                        ((and (>= (length line) 3)
+                              (string= "-> " (subseq line 0 3)))
+                         (subseq line 3))
+                        ;; remove trailing "-> <<return-value>>" on the
+                        ;; last line of output
+                        ((and (member "output" result-params)
+                              (string-match-p "->" line))
+                         (subseq line 0 (string-match "->" line)))
+                        (t line)
+                        )
                        ;; (if (and (>= (length line) 3) ;; remove leading "<- "
                        ;;          (string= "-> " (subseq line 0 3)))
                        ;;     (subseq line 3)
                        ;;   line)
-		       )))
+                       )))
                   ;; returns a list of the output of each evaluated expression
                   (org-babel-comint-with-output (session org-babel-picolisp-eoe)
                     (insert wrapped-body) (comint-send-input)
@@ -218,8 +222,8 @@ installation or fall back to `org-babel-picolisp-cmd'."
           "\n")
        ;; external evaluation
        (let ((script-file (org-babel-temp-file "picolisp-script-")))
-	 (with-temp-file script-file
-	   (insert (concat wrapped-body "(bye)")))
+         (with-temp-file script-file
+           (insert (concat wrapped-body "(bye)")))
          (org-babel-eval
           (format "%s %s"
                   (if org-babel-picolisp-use-global-install-p
@@ -246,10 +250,10 @@ then create.  Return the initialized session."
           (rename-buffer session-name)
           (current-buffer))))))
 
-;;;;; Commands
+;;; Commands
 
 (defun org-babel-picolisp-toggle-cmd (&optional arg)
-  "Toggle between use of global or local PicoLisp installation. 
+  "Toggle between use of global or local PicoLisp installation.
 
 When `org-babel-picolisp-use-global-install-p' is nil, it will be
 set to t, otherwise it will be set to nil. With prefix argument
@@ -258,14 +262,13 @@ otherwise try calling a local installation before falling back to
 the global installation."
   (interactive "P")
   (setq org-babel-picolisp-use-global-install-p
-	(if (null arg)
-	    (not org-babel-picolisp-use-global-install-p)
-	  (> (prefix-numeric-value arg) 0)))
+        (if (null arg)
+            (not org-babel-picolisp-use-global-install-p)
+          (> (prefix-numeric-value arg) 0)))
   (message "Use global installation of PicoLisp set to %s"
            org-babel-picolisp-use-global-install-p))
 
-
-;;;; Provide
+;;; Provide
 
 (provide 'ob-picolisp)
 ;; ob-picolisp.el ends here
